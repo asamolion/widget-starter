@@ -1,23 +1,18 @@
 var gulp = require("gulp");
 var sass = require("gulp-sass");
 var pug = require("gulp-pug");
+var htmlmin = require('gulp-htmlmin');
 var browserSync = require("browser-sync").create();
 var babel = require("gulp-babel");
 var plumber = require("gulp-plumber");
-var inlinesource = require('gulp-inline-source');
+var inlinesource = require("gulp-inline-source");
 
 gulp.task("html", function() {
     return gulp
         .src("src/**/*.pug")
         .pipe(plumber())
-	.pipe(pug())
-        .pipe(inlinesource())
+        .pipe(pug())
         .pipe(gulp.dest("build"))
-        .pipe(
-            browserSync.reload({
-                stream: true
-            })
-        );
 });
 
 
@@ -27,14 +22,9 @@ gulp.task("css", function() {
         .pipe(plumber())
         .pipe(sass())
         .pipe(gulp.dest("build"))
-        .pipe(
-            browserSync.reload({
-                stream: true
-            })
-        );
 });
 
-gulp.task("javascript", function() {
+gulp.task("js", function() {
     return gulp
         .src("src/**/*.js")
         .pipe(plumber())
@@ -50,12 +40,29 @@ gulp.task("browserSync", function() {
     browserSync.init({
         server: {
             baseDir: "build"
+        },
+        snippetOptions: {
+            // Provide a custom Regex for inserting the snippet.
+            rule: {
+                match: /<div id="calc">/i,
+                fn: function (snippet, match) {
+                    return snippet + match;
+                }
+            }
         }
     });
 });
 
-gulp.task("watch", ["browserSync", "html"], function() {
+gulp.task("minify", function() {
+    return gulp
+        .src("./build/*.html")
+        .pipe(inlinesource({ compress: true }))
+        .pipe(htmlmin({ collapseWhitespace: true }))
+        .pipe(gulp.dest("./prod"))
+});
+
+gulp.task("watch", ["browserSync", "html", "css", "js"], function() {
     gulp.watch("src/**/*.pug", ["html", browserSync.reload]);
-    gulp.watch("src/**/*.scss", ["html", browserSync.reload]);
-    gulp.watch("src/**/*.js", ["html", browserSync.reload]);
+    gulp.watch("src/**/*.scss", ["css", browserSync.reload]);
+    gulp.watch("src/**/*.js", ["js", browserSync.reload]);
 });
