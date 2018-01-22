@@ -66,3 +66,5 @@ gulp.task("watch", ["browserSync", "html", "css", "js"], function() {
     gulp.watch("src/**/*.scss", ["css", browserSync.reload]);
     gulp.watch("src/**/*.js", ["js", browserSync.reload]);
 });
+
+gulp.task("default", ["html", "css", "js", "minify"]);
